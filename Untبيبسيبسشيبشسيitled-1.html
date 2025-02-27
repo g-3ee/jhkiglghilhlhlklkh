@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <title>نظام البحث المتقدم v4.0</title>
+    <style>
+        body {
+            background: #000;
+            color: #0f0;
+            font-family: monospace;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .search-box {
+            border: 1px solid #0f0;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 0 10px #0f0;
+        }
+        .result-box {
+            border: 1px solid #0f0;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+        .progress {
+            height: 3px;
+            background: #0f0;
+            width: 0%;
+            transition: 0.3s;
+            box-shadow: 0 0 5px #0f0;
+        }
+        .data-row {
+            padding: 10px;
+            border-bottom: 1px dashed #0f0;
+            margin: 5px 0;
+        }
+        input {
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 10px;
+            width: 300px;
+            margin: 10px;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #000;
+            color: #0f0;
+            border: 1px solid #0f0;
+        }
+        .loading {
+            margin: 10px 0;
+            display: none;
+        }
+        .status {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>نظام البحث عن المعلومات المتقدم</h2>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="ادخل الاسم للبحث">
+            <button onclick="startSearch()">بحث</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="progress" id="progress"></div>
+            <div class="status" id="status">جاري البحث في قواعد البيانات...</div>
+        </div>
+
+        <div class="result-box" id="results"></div>
+    </div>
+
+    <script>
+        const dataBank = {
+            firstNames: ["محمد", "أحمد", "محمود", "مصطفى", "إبراهيم", "عبدالله", "حسن", "علي", "عمر", "خالد", "ياسر", "كريم"],
+            middleNames: ["السيد", "محمد", "أحمد", "إبراهيم", "عبدالرحمن", "عبدالعزيز", "حسين", "فتحي", "سمير", "عادل"],
+            lastNames: ["الشافعي", "المصري", "العربي", "السيد", "محمود", "عبدالله", "حسن", "إبراهيم", "الغزالي", "العدوي"],
+            streets: ["الجلاء", "الحرية", "النصر", "التحرير", "26 يوليو", "صلاح سالم", "مكرم عبيد", "الملك فيصل", "جمال عبد الناصر"],
+            areas: ["المعادي", "مدينة نصر", "المهندسين", "الدقي", "العجوزة", "حلوان", "المقطم", "التجمع", "المنيل", "الزمالك"],
+            cities: ["القاهرة", "الجيزة", "الإسكندرية", "المنصورة", "طنطا", "الإسماعيلية", "بورسعيد", "السويس", "المنيا"],
+            jobs: ["مهندس برمجيات", "محاسب", "طبيب", "مدرس", "مهندس معماري", "محامي", "رجل أعمال", "مدير تسويق", "صحفي"],
+            companies: ["شركة المستقبل", "مجموعة الدولية", "مؤسسة النيل", "الشركة العربية", "مجموعة التقدم", "شركة الأهرام"],
+            banks: ["البنك الأهلي", "CIB", "بنك مصر", "QNB", "HSBC", "البنك العربي", "بنك القاهرة", "بنك الإسكندرية"],
+            phoneOperators: ["011", "012", "010", "015"]
+        };
+
+        function getRandomElement(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        function generateRandomPhone() {
+            return getRandomElement(dataBank.phoneOperators) + Math.floor(Math.random() * 100000000);
+        }
+
+        function generateRandomNationalId() {
+            const year = 19 + Math.floor(Math.random() * 30);
+            const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+            const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+            const sequence = String(Math.floor(Math.random() * 9999)).padStart(4, '0');
+            return `${year}${month}${day}01${sequence}`;
+        }
+
+        function generateUniqueData(input) {
+            const fullName = `${input} ${getRandomElement(dataBank.middleNames)} ${getRandomElement(dataBank.lastNames)}`;
+            const address = `${Math.floor(Math.random() * 200)} شارع ${getRandomElement(dataBank.streets)} - ${getRandomElement(dataBank.areas)} - ${getRandomElement(dataBank.cities)}`;
+            
+            return {
+                personalInfo: {
+                    name: fullName,
+                    nationalId: generateRandomNationalId(),
+                    birthDate: `19${85 + Math.floor(Math.random() * 15)}/${Math.floor(Math.random() * 12) + 1}/${Math.floor(Math.random() * 28) + 1}`,
+                    address: address,
+                    profession: getRandomElement(dataBank.jobs),
+                    workplace: getRandomElement(dataBank.companies),
+                    maritalStatus: ["متزوج", "أعزب"][Math.floor(Math.random() * 2)],
+                    education: ["جامعة القاهرة", "جامعة عين شمس", "جامعة الأزهر"][Math.floor(Math.random() * 3)]
+                },
+                contacts: {
+                    mobile: [generateRandomPhone(), generateRandomPhone(), generateRandomPhone()],
+                    landline: "02" + Math.floor(Math.random() * 10000000)
+                },
+                financialInfo: {
+                    banks: dataBank.banks.slice(0, 2 + Math.floor(Math.random() * 3)).map(bank => ({
+                        name: bank,
+                        accountNumber: Math.floor(Math.random() * 1000000000000000),
+                        balance: (Math.random() * 500000).toFixed(2) + " جنيه"
+                    })),
+                    monthlyIncome: (Math.random() * 20000 + 5000).toFixed(2) + " جنيه"
+                },
+                vehicles: {
+                    carModel: ["تويوتا كورولا", "هيونداي إلنترا", "كيا سيراتو"][Math.floor(Math.random() * 3)],
+                    plateNumber: `${Math.floor(Math.random() * 9999)} أ ج ب`
+                },
+                callHistory: Array(5).fill(null).map(() => ({
+                    number: generateRandomPhone(),
+                    date: new Date(Date.now() - Math.random() * 10000000000).toLocaleDateString('ar-EG'),
+                    duration: Math.floor(Math.random() * 30) + " دقيقة",
+                    type: ["صادرة", "واردة"][Math.floor(Math.random() * 2)]
+                }))
+            };
+        }
+
+        async function startSearch() {
+            const input = document.getElementById('searchInput').value;
+            if (!input) return;
+
+            const loading = document.getElementById('loading');
+            const progress = document.getElementById('progress');
+            const status = document.getElementById('status');
+            const results = document.getElementById('results');
+
+            loading.style.display = 'block';
+            results.style.display = 'none';
+
+            const searchSteps = [
+                "جاري الاتصال بقواعد البيانات...",
+                "البحث في السجلات المدنية...",
+                "تحليل البيانات الشخصية...",
+                "فحص السجلات المالية...",
+                "جمع معلومات الاتصالات...",
+                "تحليل النتائج النهائية..."
+            ];
+
+            for (let i = 0; i < searchSteps.length; i++) {
+                status.textContent = searchSteps[i];
+                progress.style.width = ((i + 1) / searchSteps.length * 100) + '%';
+                await new Promise(r => setTimeout(r, 800));
+            }
+
+            const data = generateUniqueData(input);
+            
+            let html = `
+                <h3>المعلومات الشخصية</h3>
+                <div class="data-row">الاسم: ${data.personalInfo.name}</div>
+                <div class="data-row">الرقم القومي: ${data.personalInfo.nationalId}</div>
+                <div class="data-row">تاريخ الميلاد: ${data.personalInfo.birthDate}</div>
+                <div class="data-row">العنوان: ${data.personalInfo.address}</div>
+                <div class="data-row">المهنة: ${data.personalInfo.profession}</div>
+                <div class="data-row">جهة العمل: ${data.personalInfo.workplace}</div>
+                <div class="data-row">الحالة الاجتماعية: ${data.personalInfo.maritalStatus}</div>
+                <div class="data-row">المؤهل: ${data.personalInfo.education}</div>
+
+                <h3>معلومات الاتصال</h3>
+                <div class="data-row">الهواتف المحمولة: ${data.contacts.mobile.join(' - ')}</div>
+                <div class="data-row">الهاتف الأرضي: ${data.contacts.landline}</div>
+
+                <h3>المعلومات المالية</h3>
+                <div class="data-row">الدخل الشهري: ${data.financialInfo.monthlyIncome}</div>
+                ${data.financialInfo.banks.map(bank => `
+                    <div class="data-row">
+                        ${bank.name}<br>
+                        رقم الحساب: ${bank.accountNumber}<br>
+                        الرصيد: ${bank.balance}
+                    </div>
+                `).join('')}
+
+                <h3>معلومات المركبات</h3>
+                <div class="data-row">
+                    الموديل: ${data.vehicles.carModel}<br>
+                    رقم اللوحة: ${data.vehicles.plateNumber}
+                </div>
+
+                <h3>سجل المكالمات الأخيرة</h3>
+                ${data.callHistory.map(call => `
+                    <div class="data-row">
+                        الرقم: ${call.number}<br>
+                        التاريخ: ${call.date}<br>
+                        المدة: ${call.duration}<br>
+                        النوع: ${call.type}
+                    </div>
+                `).join('')}
+            `;
+
+            loading.style.display = 'none';
+            results.style.display = 'block';
+            results.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
+
